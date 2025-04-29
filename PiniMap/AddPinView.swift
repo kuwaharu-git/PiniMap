@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import Contacts 
 
 struct AddPinView: View {
     @Environment(\.dismiss) var dismiss
@@ -14,7 +15,6 @@ struct AddPinView: View {
     @State private var name: String = ""
     @State private var address: String = ""
     @State private var isSearching: Bool = false
-    @State private var location: CLLocationCoordinate2D?
     @State private var errorMessage: String?
 
     var body: some View {
@@ -42,35 +42,53 @@ struct AddPinView: View {
             .navigationTitle("新しいピンを追加")
             .navigationBarItems(leading: Button("キャンセル") {
                 dismiss()
-            }, trailing: Button("保存") {
-                if let location = location {
-                    let newPin = Pin(
-                        id: UUID(),
-                        name: name,
-                        address: address,
-                        latitude: location.latitude,
-                        longitude: location.longitude
-                    )
-                    plan.pins.append(newPin)
-                }
-                dismiss()
-            }.disabled(location == nil))
+            })
         }
     }
 
     func searchLocation() {
         isSearching = true
         let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address) { placemarks, error in
+        
+        // 空の住所をチェック
+        if address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             isSearching = false
-            if let placemark = placemarks?.first,
-               let loc = placemark.location?.coordinate {
-                location = loc
-                errorMessage = nil
-            } else {
-                location = nil
-                errorMessage = "存在しない住所です"
-            }
+            errorMessage = "住所を入力してください"
+            return
         }
+        
+        geocoder.geocodeAddressString(address, completionHandler: { (placemarks: [CLPlacemark]?, error: Error?) in
+            isSearching = false
+            
+            // エラーハンドリング
+            if let error = error {
+                print("ジオコーディングエラー: \(error.localizedDescription)")
+                self.errorMessage = "住所がみつかりませんでした。より詳細な住所を入力してください"
+                return
+            }
+            
+            // 結果の検証
+            if let placemark = placemarks?.first, let loc = placemark.location?.coordinate {
+                self.errorMessage = nil
+                
+                // 念のため、取得できた住所情報をログに出力
+                print("検索成功: \(placemark.name ?? ""), \(placemark.locality ?? ""), \(placemark.administrativeArea ?? "")")
+                saveLocation(name: name, address: address, latitude: loc.latitude, longitude: loc.longitude)
+                dismiss()
+                
+            } else {
+                self.errorMessage = "住所が見つかりませんでした。より詳細な住所を入力してください"
+            }
+        })
+    }
+    func saveLocation(name: String, address: String, latitude: Double, longitude: Double) {
+        let newPin = Pin(
+            id: UUID(),
+            name: name,
+            address: address,
+            latitude: latitude,
+            longitude: longitude
+        )
+        plan.pins.append(newPin)
     }
 }
