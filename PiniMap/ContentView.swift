@@ -7,15 +7,28 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
+    @State private var plans: [Plan] = []
+    @State private var showingNewPlanView = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            List(plans) { plan in
+                NavigationLink(destination: PlanDetailView(plan: plan)) {
+                    Text(plan.title)
+                }
+            }
+            .navigationTitle("PiniMap")
+            .navigationBarItems(trailing: Button(action: {
+                showingNewPlanView = true
+            }) {
+                Image(systemName: "plus")
+            })
+            .sheet(isPresented: $showingNewPlanView) {
+                NewPlanView(plans: $plans)
+            }
         }
-        .padding()
     }
 }
 
