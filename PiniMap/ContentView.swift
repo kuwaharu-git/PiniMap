@@ -14,9 +14,11 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            List(plans) { plan in
-                NavigationLink(destination: PlanDetailView(plan: plan)) {
-                    Text(plan.title)
+            List {
+                ForEach($plans) { $plan in
+                    NavigationLink(destination: PlanDetailView(plan: $plan)) {
+                        Text(plan.title)
+                    }
                 }
             }
             .navigationTitle("PiniMap")
