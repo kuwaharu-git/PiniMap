@@ -54,19 +54,32 @@ struct PlanDetailView: View {
             AddPinView(plan: $plan)
         }
         .sheet(isPresented: $showingPinList) {
-            List {
-                ForEach(plan.pins) { pin in
-                    VStack(alignment: .leading) {
-                        Text(pin.name).bold()
-                        Text(pin.address).font(.subheadline).foregroundColor(.secondary)
+            NavigationView {
+                List {
+                    ForEach(plan.pins) { pin in
+                        Button {
+                            cameraPosition = .region(
+                                MKCoordinateRegion(
+                                    center: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude),
+                                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                )
+                            )
+                            showingPinList = false
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(pin.name).bold()
+                                Text(pin.address).font(.subheadline).foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 4)
+                    .onDelete { indexSet in
+                        plan.pins.remove(atOffsets: indexSet)
+                    }
                 }
-                .onDelete { indexSet in
-                    plan.pins.remove(atOffsets: indexSet)
-                }
+                .navigationTitle("ピン一覧")
             }
-            .navigationTitle("ピン一覧")
         }
         .onAppear {
             if let firstPin = plan.pins.first {
