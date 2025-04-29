@@ -20,6 +20,9 @@ struct ContentView: View {
                         Text(plan.title)
                     }
                 }
+                .onDelete { indexSet in
+                    plans.remove(atOffsets: indexSet)
+                }
             }
             .navigationTitle("PiniMap")
             .navigationBarItems(trailing: Button(action: {

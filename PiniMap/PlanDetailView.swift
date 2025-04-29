@@ -62,6 +62,9 @@ struct PlanDetailView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                .onDelete { indexSet in
+                    plan.pins.remove(atOffsets: indexSet)
+                }
             }
             .navigationTitle("ピン一覧")
         }
